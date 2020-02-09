@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "nodemon server.js"
+    "start:dev": "nodemon server.js",
+    "seed:users": "node scripts/seedUsers.js"
   },
   "keywords": [
     "node",
@@ -14,12 +15,17 @@
   "author": "@ezequiel_ish",
   "license": "MIT",
   "dependencies": {
+    "bcrypt": "^3.0.8",
     "body-parser": "^1.19.0",
+    "debug": "^4.1.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "glob": "^7.1.6",
     "mongodb": "^3.5.2",
     "multer": "^1.4.2",
     "nodemon": "^2.0.2"
+  },
+  "devDependencies": {
+    "chalk": "^3.0.0"
   }
 }

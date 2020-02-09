@@ -10,6 +10,18 @@ const {
 const PATH_IMG_USER = "./public/app/users";
 const { host, port, publicRoute } = require("../../../config");
 const fs = require("fs");
+
+const hashUser = (data, fileUrl) => {
+  const user = {
+    name: data.name,
+    email: data.email,
+    file: fileUrl,
+    createAt: new Date(),
+    active: true
+    // online: true
+  };
+  return user;
+};
 async function postUser(data, file) {
   try {
     if (!data.name || !data.email) {
@@ -21,15 +33,7 @@ async function postUser(data, file) {
       fileUrl = `${host}:${port}/${publicRoute}/users/${data.email}/${file.originalname}`;
     }
 
-    const user = {
-      user: data.name,
-      email: data.email,
-      file: fileUrl,
-      createAt: new Date(),
-      active: true,
-      online: true
-    };
-
+    const user = await hashUser(data, fileUrl);
     const result = await add(user);
 
     return result.ops[0];

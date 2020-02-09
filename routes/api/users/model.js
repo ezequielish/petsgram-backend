@@ -25,9 +25,9 @@ module.exports = {
       return { error: "Algo ha salido mal" };
     }
   },
-  add: function(user) {
-    const db = mongo.instance().db(name_db); // utilizamos la instancia creada
-    const resp = db.collection("users").insertOne(user);
+  add: async function(user) {
+    const db = await mongo.instance().db(name_db); // utilizamos la instancia creada
+    const resp = await db.collection("users").insertOne(user);
     return resp;
   },
   update: async function(data, id) {
