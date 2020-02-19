@@ -5,10 +5,10 @@ const { name_db } = require("../../../config");
 module.exports = {
   getAll: function() {
     const db = mongo.instance().db(name_db); // utilizamos la instancia creada
-    const projection = { _id: 1, user: 1, email: 1, file: 1, name: 1 };
+    // const projection = { _id: 1, user: 1, email: 1, file: 1, name: 1 };
     const resp = db
-      .collection("users")
-      .find({}, { projection })
+      .collection("categories")
+      .find({})
       .toArray();
     return resp;
   },
@@ -16,7 +16,7 @@ module.exports = {
     try {
       const db = await mongo.instance().db(name_db); // utilizamos la instancia creada
       const resp = await db
-        .collection("users")
+        .collection("categories")
         .find({ _id: new ObjectId(id) })
         .toArray(); //hacemos una busqueda segun el id y devolvemos un array
 
@@ -25,38 +25,27 @@ module.exports = {
       return { error: "Algo ha salido mal" };
     }
   },
-  getUserEmail: async function(email) {
-    try {
-      const db = await mongo.instance().db(name_db); // utilizamos la instancia creada
-      const resp = await db
-        .collection("users")
-        .find({ email: email })
-        .toArray(); //hacemos una busqueda segun el id y devolvemos un array
 
-      return resp;
-    } catch (error) {
-      console.log(error);
-      
-      return { error: "Algo ha salido mal" };
-    }
-  },
-  add: async function(user) {
+  add: async function(categorie) {
     const db = await mongo.instance().db(name_db); // utilizamos la instancia creada
-    const resp = await db.collection("users").insertOne(user);
+    const resp = await db.collection("categories").insertOne(categorie);
     return resp;
   },
   update: async function(data, id) {
     const db = await mongo.instance().db(name_db); // utilizamos la instancia creada
     const resp = await db
-      .collection("users")
-      .updateOne({ _id: new ObjectId(id) }, { $set: { ...data, updateAt: new Date() } });
+      .collection("categories")
+      .updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { ...data, updateAt: new Date() } }
+      );
     return resp;
   },
   updateFile: async function(url, id) {
     try {
       const db = await mongo.instance().db(name_db); // utilizamos la instancia creada
       const resp = await db
-        .collection("users")
+        .collection("categories")
         .updateOne({ _id: new ObjectId(id) }, { $set: { file: url } });
       return resp;
     } catch (error) {
@@ -66,7 +55,7 @@ module.exports = {
   deleteOne: async function(id) {
     const db = await mongo.instance().db(name_db); // utilizamos la instancia creada
     const resp = await db
-      .collection("users")
+      .collection("categories")
       .deleteOne({ _id: new ObjectId(id) });
     return resp;
   }

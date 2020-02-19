@@ -1,48 +1,31 @@
 const API_PATH = "/api";
 
 const { success } = require("../../../network/response");
+const { add, getAll, update, updateFile, deleteCategorie } = require("./controller");
 const {
-  add,
-  getAll,
-  get,
-  update,
-  updateFile,
-  deleteUser
-} = require("./controller");
-const {
-  configFile,
-  configFileUpdate
+  configFileCategorie,
+  configFileUpdateCategorie
 } = require("../../../middlewares/multerFileName");
-const upload = configFile("users");
-const uploadUpdate = configFileUpdate("users");
+const upload = configFileCategorie("categories");
+const uploadUpdate = configFileUpdateCategorie("categories");
 
 module.exports = app => {
-  app.get(`${API_PATH}/users`, async (req, res, next) => {
+  app.get(`${API_PATH}/categories`, async (req, res, next) => {
     try {
       const data = await getAll(next);
       success(res, data, 200);
     } catch (error) {
-      next(error);
+      next();
     }
   });
-  app.get(`${API_PATH}/user/:id`, async (req, res, next) => {
-    try {
-      let id = req.params.id || null;
 
-      const data = await get(id, next);
-
-      success(res, data, 200);
-    } catch (error) {}
-  });
-
-  //add user
+  //add categorie
   app.post(
-    `${API_PATH}/users`,
+    `${API_PATH}/categorie`,
     upload.single("file"),
     async (req, res, next) => {
       try {
         const data = await add(req.body, req.file, next);
-       
         success(res, data, 201);
       } catch (error) {
         next(error);
@@ -50,8 +33,8 @@ module.exports = app => {
     }
   );
 
-  //update user
-  app.patch(`${API_PATH}/user`, async (req, res, next) => {
+  //update categorie
+  app.patch(`${API_PATH}/categorie`, async (req, res, next) => {
     try {
       const data = await update(req.body, next);
 
@@ -63,7 +46,7 @@ module.exports = app => {
 
   //update file
   app.patch(
-    `${API_PATH}/update/image/user/:id`,
+    `${API_PATH}/update/image/categorie/:id`,
     uploadUpdate.single("file"),
     async (req, res, next) => {
       try {
@@ -73,15 +56,16 @@ module.exports = app => {
 
         success(res, "", 200);
       } catch (error) {
-        error(res, data.error, 500);
+        next(error);
       }
     }
   );
-  app.delete(`${API_PATH}/user/:id`, async (req, res, next) => {
+
+  app.delete(`${API_PATH}/categorie/:id`, async (req, res, next) => {
     try {
       let id = req.params.id || null;
 
-      await deleteUser(id, req.file, next);
+      await deleteCategorie(id, next);
 
       success(res, "", 200);
     } catch (error) {

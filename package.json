@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "nodemon server.js",
-    "seed:users": "node scripts/seedUsers.js"
+    "seed:users": "node scripts/seedUsers.js",
+    "seed:api:keys": "node scripts/seedApiKeys.js"
   },
   "keywords": [
     "node",
@@ -23,7 +24,10 @@
     "glob": "^7.1.6",
     "mongodb": "^3.5.2",
     "multer": "^1.4.2",
-    "nodemon": "^2.0.2"
+    "nodemon": "^2.0.2",
+    "passport": "^0.4.1",
+    "passport-http": "^0.3.0",
+    "passport-jwt": "^4.0.0"
   },
   "devDependencies": {
     "chalk": "^3.0.0"

@@ -39,7 +39,7 @@ async function createUser(user) {
 }
 
 /**
- * Le garega el password a los usaurios
+ * Le agrega el password a los usaurios
  */
 async function hashUsers() {
   const hashedPassword = await bcrypt.hash("secret", 10);
@@ -61,7 +61,7 @@ async function seedUsers() {
     const saveUsers = usersHashed.map(async user => {
       const userCreated = await createUser(user);
       // debug(chalk.green("User created with id:", userCreated));
-      console.log("User created with id:", userCreated);
+      console.log("User created with:", userCreated);
     });
 
     await Promise.all(saveUsers);

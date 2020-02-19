@@ -9,6 +9,7 @@ const config = {
     urldb: process.env.DB || '',
     port_db: process.env.DB_PORT,
     publicRoute: process.env.PUBLIC_ROUTE || 'app',
+    authJwtSecret: process.env.JWT
 
 }
 
