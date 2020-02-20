@@ -1,28 +1,44 @@
 const API_PATH = "/api";
 
 const { success } = require("../../../network/response");
-const { add, getAll, update, updateFile, deleteCategorie } = require("./controller");
+const {
+  add,
+  getAll,
+  update,
+  updateFile,
+  deleteCategorie
+} = require("./controller");
 const {
   configFileCategorie,
   configFileUpdateCategorie
 } = require("../../../middlewares/multerFileName");
 const upload = configFileCategorie("categories");
 const uploadUpdate = configFileUpdateCategorie("categories");
+const passport = require("passport");
+const scopeValidatior = require("../../../middlewares/handleScopeValidation");
+require("../../../utils/strategies/auth/jwt");
 
 module.exports = app => {
-  app.get(`${API_PATH}/categories`, async (req, res, next) => {
-    try {
-      const data = await getAll(next);
-      success(res, data, 200);
-    } catch (error) {
-      next();
+  app.get(
+    `${API_PATH}/categories`,
+    passport.authenticate("jwt", { session: false }),
+    scopeValidatior(["read:categories"]),
+    async (req, res, next) => {
+      try {
+        const data = await getAll(next);
+        success(res, data, 200);
+      } catch (error) {
+        next();
+      }
     }
-  });
+  );
 
   //add categorie
   app.post(
     `${API_PATH}/categorie`,
     upload.single("file"),
+    passport.authenticate("jwt", { session: false }),
+    scopeValidatior(["create:categorie"]),
     async (req, res, next) => {
       try {
         const data = await add(req.body, req.file, next);
@@ -34,20 +50,27 @@ module.exports = app => {
   );
 
   //update categorie
-  app.patch(`${API_PATH}/categorie`, async (req, res, next) => {
-    try {
-      const data = await update(req.body, next);
+  app.patch(
+    `${API_PATH}/categorie`,
+    passport.authenticate("jwt", { session: false }),
+    scopeValidatior(["update:categories"]),
+    async (req, res, next) => {
+      try {
+        const data = await update(req.body, next);
 
-      success(res, data, 200);
-    } catch (error) {
-      next(error);
+        success(res, data, 200);
+      } catch (error) {
+        next(error);
+      }
     }
-  });
+  );
 
   //update file
   app.patch(
     `${API_PATH}/update/image/categorie/:id`,
     uploadUpdate.single("file"),
+    passport.authenticate("jwt", { session: false }),
+    scopeValidatior(["update:categories"]),
     async (req, res, next) => {
       try {
         let id = req.params.id || null;
@@ -61,7 +84,10 @@ module.exports = app => {
     }
   );
 
-  app.delete(`${API_PATH}/categorie/:id`, async (req, res, next) => {
+  app.delete(`${API_PATH}/categorie/:id`,
+  passport.authenticate("jwt", { session: false }),
+  scopeValidatior(["delete:categories"]),
+  async (req, res, next) => {
     try {
       let id = req.params.id || null;
 

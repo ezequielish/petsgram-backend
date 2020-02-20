@@ -4,7 +4,6 @@ const { success, error } = require("../../../network/response");
 const { sigin } = require("./controller");
 // Basic strategy
 require("../../../utils/strategies/auth/basic");
-// const basicAuth = require('../../../utils/strategies/auth/basicAuth');
 
 module.exports = app => {
   app.post(`${API_PATH}/auth/sign-in`, async (req, res, next) => {
@@ -19,7 +18,7 @@ module.exports = app => {
             next(err);
             return;
           }
-          const result = await sigin(user, req, next);
+          const result = await sigin(user, next);
 
           success(res, result, 200);
         });

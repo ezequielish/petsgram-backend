@@ -9,8 +9,9 @@ const config = {
     urldb: process.env.DB || '',
     port_db: process.env.DB_PORT,
     publicRoute: process.env.PUBLIC_ROUTE || 'app',
-    authJwtSecret: process.env.JWT
-
+    authJwtSecret: process.env.JWT,
+    apiKeyScopeAdmin: process.env.API_KEY_SCOPE_ADMIN,
+    apiKeyScopePublic: process.env.API_KEY_SCOPE_PUBLIC
 }
 
 module.exports = config

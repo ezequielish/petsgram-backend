@@ -10,10 +10,10 @@ const {
 const bcrypt = require("bcrypt");
 const error = require("../../../utils/error");
 const PATH_IMG_USER = "./public/app/users";
-const { host, port, publicRoute } = require("../../../config");
+const { host, port, publicRoute, apiKeyScopeAdmin, apiKeyScopePublic } = require("../../../config");
 const fs = require("fs");
 
-const hashUser = async (data, fileUrl) => {
+const hashUser = async (data, fileUrl, isAdmin) => {
   const user = {
     name: data.name,
     email: data.email,
@@ -21,12 +21,13 @@ const hashUser = async (data, fileUrl) => {
     createAt: new Date(),
     updateAt: new Date(),
     active: true,
-    password: await bcrypt.hash(data.password, 10)
+    password: await bcrypt.hash(data.password, 10),
+    scope: isAdmin ? apiKeyScopeAdmin : apiKeyScopePublic 
     // online: true
   };
   return user;
 };
-async function postUser(data, file, next) {
+async function postUser(data, file, isAdmin, next) {
   if (!data.name || !data.email || !data.password) {
     throw error("Campos inválidos");
   }
@@ -41,7 +42,7 @@ async function postUser(data, file, next) {
       throw error("email ya existe");
     }
 
-    const user = await hashUser(data, fileUrl);
+    const user = await hashUser(data, fileUrl, isAdmin);
     const result = await add(user);
     // delete result.ops[0].password
     return result.ops[0]._id;
@@ -107,6 +108,10 @@ async function updateUserFile(id, file) {
       fs.unlink(`${PATH_IMG_USER}/${email}/${img}`, err => {
         if (err) console.log(err);
       });
+
+      // fs.unlink(`${PATH_IMG_USER}/${email}/${img}`, err => {
+      //   if (err) console.log(err);
+      // });
     }
     let fileUrl = "";
     if (file) {

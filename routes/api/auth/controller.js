@@ -3,10 +3,15 @@ const error = require("../../../utils/error");
 const { getApiToken } = require("../apiKeyToken/model");
 const { authJwtSecret } = require("../../../config");
 
-async function sigin(user, req, next) {
+async function sigin(user, next) {
+
+  
+  if (!user.scope) {
+    throw error("No autorizado", 401);
+  }
+
   try {
-    const token = req.body.apiKeyToken;
-    const apiKeyToken = await getApiToken(token); //validamos el api-key token
+    const apiKeyToken = await getApiToken(user.scope); //validamos el api-key token
 
     if (!apiKeyToken.length) {
       throw error("No autorizado", 401);
@@ -26,7 +31,9 @@ async function sigin(user, req, next) {
 
     const data = {
         token: newToken,
-        ...user
+        file: user.file,
+        name: user.name,
+        email: user.email
     }
  
     return data;

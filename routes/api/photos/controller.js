@@ -55,7 +55,7 @@ async function addPhoto(data, file, next) {
   }
 }
 
-  async function getPhotosCategorie(query, next) {
+  async function getPhotosCategorieOrUser(query, next) {
 
     console.log(query);
     
@@ -144,7 +144,7 @@ async function addPhoto(data, file, next) {
 //   }
 module.exports = {
   add: addPhoto,
-  getXCategorie: getPhotosCategorie
+  getCategorieOrUser: getPhotosCategorieOrUser
   // getAll: getCategories,
   // update: updatCategorie,
   // updateFile: updateCategorieFile,

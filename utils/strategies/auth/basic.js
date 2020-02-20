@@ -18,7 +18,7 @@ passport.use(
       if (!(await bcrypt.compare(password, user[0].password))) {
         throw error("No autorizado", 401);
       }
-
+      
       delete user[0].password;
      
       return cb(null, user[0]);
