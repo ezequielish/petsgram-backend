@@ -1,8 +1,11 @@
 const {
   add,
-  getPhotoQuery,
+  getAll,
+  getPhotoUser,
+  getPhotoCategory,
+  getPhotoId,
   update,
-//   getID,
+  //   getID,
   updateFile,
   deleteOne
 } = require("./model");
@@ -15,106 +18,89 @@ const { get: getUser } = require("../users/controller");
 const { getID } = require("../categories/model");
 const { host, port, publicRoute } = require("../../../config");
 const fs = require("fs");
+const hasName = require("../../../utils/hasSpaceName")
 
-async function addPhoto(data, file, next) {
-    
-  if (!data.idCategorie || !data.idUser || !file) {
+async function addPhoto(data, user, file, next) {
+  
+  if (!data.idCategory || !user || !file) {
     throw error("Campos inválidos");
   }
 
   try {
-    const user = await getUser(data.idUser);
-    const categorie = await getID(data.idCategorie);
-    if (!user) {
+    const userSelect = await getUser(user.sub);
+    const category = await getID(data.idCategory);
+    if (!userSelect) {
       throw error("usuario no existe");
     }
-    if (!categorie) {
+    if (!category) {
       throw error("categoria no existe");
     }
+    let fileUrl = "";
+    if (file) {
+      fileUrl = `${host}:${port}/${publicRoute}/${dirNameUser}/${userSelect[0].email}/${dirName}/${hasName(file.originalname)}`;
+    }
 
-      let fileUrl = "";
-      if (file) {
-        fileUrl = `${host}:${port}/${publicRoute}/${dirNameUser}/${user[0].email}/${dirName}/${file.originalname}`;
-      }
+    const photo = {
+      idCategory: new ObjectId(data.idCategory),
+      idUser: new ObjectId(user.sub),
+      cover: fileUrl,
+      likes: 0,
+      createAt: new Date(),
+      updateAt: new Date()
+    };
 
-      const photo = {
-        idCategorie: new ObjectId(data.idCategorie),
-        idUser: new ObjectId(data.idUser),
-        cover: fileUrl,
-        like: 0,
-        liked: 0,
-        createAt: new Date(),
-        updateAt: new Date()
-      };
-
-      const result = await add(photo);
-      return result.ops[0]._id;
+    const result = await add(photo);
+    return result.ops[0]._id;
   } catch (error) {
-    console.error("Error [controller:photo]");
+    console.error("Error [controller:photos]");
+    next(error);
+  }
+}
+async function allPhotos(next) {
+  try {
+    const data = await getAll();
+    return data;
+  } catch (error) {
+    console.error("Error [controller:photos]");
+    next(error);
+  }
+}
+async function PhotosCategory(query, next) {
+  if (!query) {
+    throw error("categoria no existe");
+  }
+  try {
+    const data = await getPhotoCategory(query);
+    return data;
+  } catch (error) {
+    console.error("Error [controller:photos]");
+    next(error);
+  }
+}
+async function photosUser(query, next) {
+  if (!query) {
+    throw error("usuario no existe");
+  }
+  try {
+    const data = await getPhotoUser(query);
+    return data;
+  } catch (error) {
+    console.error("Error [controller:photos]");
+    next(error);
+  }
+}
+async function photoId(query, next) {
+
+  try {
+    const data = await getPhotoId(query);
+    return data;
+  } catch (error) {
+    console.error("Error [controller:photos]");
     next(error);
   }
 }
 
-  async function getPhotosCategorieOrUser(query, next) {
 
-    console.log(query);
-    
-    try {
-      const data = await getPhotoQuery(query);
-      return data;
-    } catch (error) {
-      console.error("Error [controller:categories]");
-      next(error);
-    }
-  }
-
-//   async function updatCategorie(data, next) {
-//     const id = data.id;
-//     delete data.id;
-
-//     try {
-//       const result = await update(data, id);
-//       if (result.error) {
-//         throw error(result.error);
-//       }
-//       return id;
-//     } catch (error) {
-//       console.error("Error [controller:categories]");
-//       next(error);
-//     }
-//   }
-
-//   async function updateCategorieFile(id, file, next) {
-//     try {
-//       const categorie = await getID(id);
-//       if (!categorie.length) {
-//         throw error("categoria no existe");
-//       }
-//       const fileExist = categorie[0].cover;
-//       const name = categorie[0].name;
-
-//       if (fileExist) {
-//         // si existe eliminamos la foto actual
-//         const img = fileExist.split("/")[6];
-
-//         fs.unlink(`${PATH_IMG_CATEGORIES}/${name}/${img}`, err => {
-//           if (err) console.log(err);
-//         });
-//       }
-//       let fileUrl = "";
-//       if (file) {
-//         fileUrl = `${host}:${port}/${publicRoute}/${dirName}/${name}/${file.originalname}`;
-//       }
-
-//       const result = await updateFile(fileUrl, id);
-//       if (result.error) {
-//         throw error(result.error);
-//       }
-//     } catch (error) {
-//       console.error("Error [controller:user]");
-//       next(error);
-//     }
-//   }
 //   async function deleteCategorie(id, next) {
 //     try {
 //       const categorie = await getID(id);
@@ -144,7 +130,10 @@ async function addPhoto(data, file, next) {
 //   }
 module.exports = {
   add: addPhoto,
-  getCategorieOrUser: getPhotosCategorieOrUser
+  getXCategory: PhotosCategory,
+  getAll: allPhotos,
+  getXUser: photosUser,
+  getXId: photoId
   // getAll: getCategories,
   // update: updatCategorie,
   // updateFile: updateCategorieFile,

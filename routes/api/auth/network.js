@@ -9,14 +9,15 @@ module.exports = app => {
   app.post(`${API_PATH}/auth/sign-in`, async (req, res, next) => {
     try {
       passport.authenticate("basic", function(err, user) {
+        if (!user) {
+          return error(res, "No autorizado", 500);
+        }
         if (err) {
-          next(err);
-          return;
+          return error(res, err, 500);
         }
         req.login(user, { session: false }, async function(err) {
           if (err) {
-            next(err);
-            return;
+            return error(res, err, 500);
           }
           const result = await sigin(user, next);
 

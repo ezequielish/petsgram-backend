@@ -46,7 +46,7 @@ module.exports = {
       const db = await mongo.instance().db(name_db); // utilizamos la instancia creada
       const resp = await db
         .collection("categories")
-        .updateOne({ _id: new ObjectId(id) }, { $set: { file: url } });
+        .updateOne({ _id: new ObjectId(id) }, { $set: { cover: url } });
       return resp;
     } catch (error) {
       return { error: "Algo ha salido mal" };

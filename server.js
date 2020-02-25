@@ -5,7 +5,12 @@ const config = require("./config")
 const mongo = require("./db/connect");
 const passport = require("passport");
 const { publicRoute } = require("./config")
+const helmet = require("helmet");
+const cors = require("cors");
 const errors = require('./middlewares/errors');
+const corsOptions = { origin: "*" };
+app.use(helmet());
+app.use(cors(corsOptions));
 app.use( bodyParser.json() );
 app.use( bodyParser.urlencoded({ extended: false }) );
 

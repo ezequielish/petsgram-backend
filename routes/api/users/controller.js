@@ -10,9 +10,15 @@ const {
 const bcrypt = require("bcrypt");
 const error = require("../../../utils/error");
 const PATH_IMG_USER = "./public/app/users";
-const { host, port, publicRoute, apiKeyScopeAdmin, apiKeyScopePublic } = require("../../../config");
+const {
+  host,
+  port,
+  publicRoute,
+  apiKeyScopeAdmin,
+  apiKeyScopePublic
+} = require("../../../config");
 const fs = require("fs");
-
+const hasName = require("../../../utils/hasSpaceName")
 const hashUser = async (data, fileUrl, isAdmin) => {
   const user = {
     name: data.name,
@@ -22,24 +28,32 @@ const hashUser = async (data, fileUrl, isAdmin) => {
     updateAt: new Date(),
     active: true,
     password: await bcrypt.hash(data.password, 10),
-    scope: isAdmin ? apiKeyScopeAdmin : apiKeyScopePublic 
+    scope: isAdmin ? apiKeyScopeAdmin : apiKeyScopePublic
     // online: true
   };
   return user;
 };
+
 async function postUser(data, file, isAdmin, next) {
   if (!data.name || !data.email || !data.password) {
     throw error("Campos inválidos");
   }
+  const emailToValidate = data.email;
+  const emailRegexp = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  
+  emailValidate = emailRegexp.test(emailToValidate);
+  if (!emailValidate) {
+    throw error("email inválido");
+  }
+  const existeUser = await getUserEmail(data.email);
+  if (existeUser.length) {
+    throw error("email ya existe");
+  }
+
   try {
     let fileUrl = "";
     if (file) {
-      fileUrl = `${host}:${port}/${publicRoute}/users/${data.email}/${file.originalname}`;
-    }
-
-    const existeUser = await getUserEmail(data.email);
-    if (existeUser.length) {
-      throw error("email ya existe");
+      fileUrl = `${host}:${port}/${publicRoute}/users/${data.email}/${hasName(file.originalname)}`;
     }
 
     const user = await hashUser(data, fileUrl, isAdmin);
@@ -77,9 +91,13 @@ async function getUser(id, next) {
     next(error);
   }
 }
-async function updateUser(data, next) {
+async function updateUser(data, user, next) {
   const id = data.id;
   delete data.id;
+  if(user.sub != id){
+    throw error("no autorizado");
+  }
+
   try {
     const result = await update(data, id);
     if (result.error) {
@@ -92,7 +110,11 @@ async function updateUser(data, next) {
   }
 }
 
-async function updateUserFile(id, file) {
+async function updateUserFile(id, user, file, next) {
+  const idSub = user.sub
+  if(idSub != id){
+    throw error("no autorizado");
+  }
   try {
     const user = await getUser(id);
     if (!user.length) {
@@ -115,17 +137,21 @@ async function updateUserFile(id, file) {
     }
     let fileUrl = "";
     if (file) {
-      fileUrl = `${host}:${port}/${publicRoute}/users/${email}/${file.originalname}`;
+      fileUrl = `${host}:${port}/${publicRoute}/users/${email}/${hasName(file.originalname)}`;
     }
 
-     await updateFile(fileUrl, id);
- 
+    await updateFile(fileUrl, id);
   } catch (error) {
     console.error("Error [controller:user]");
     next(error);
   }
 }
-async function deleteUser(id, next) {
+async function deleteUser(id, user, next) {
+  const idSub = user.sub
+
+  if(idSub != id && !user.scopes.includes('delete:user:admin')){
+    throw error("no autorizado");
+  }
   try {
     const user = await getUser(id);
     if (!user.length) {

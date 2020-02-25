@@ -66,11 +66,9 @@ module.exports = app => {
   );
   //add user
   app.post(
-    `${API_PATH}/users`,
-    passport.authenticate("jwt", { session: false }),
-    scopeValidatior(["create:user"]),
+    `${API_PATH}/user`,
     upload.single("file"),
-    async (req, res, next) => {
+    async (req, res, next) => {      
       try {
         const data = await add(req.body, req.file, false, next);
 
@@ -88,7 +86,7 @@ module.exports = app => {
     scopeValidatior(["update:user"]),
     async (req, res, next) => {
       try {
-        const data = await update(req.body, next);
+        const data = await update(req.body,req.user, next);
 
         success(res, data, 200);
       } catch (error) {
@@ -107,11 +105,11 @@ module.exports = app => {
       try {
         let id = req.params.id || null;
 
-        await updateFile(id, req.file, next);
+        await updateFile(id, req.user, req.file, next);
 
         success(res, "", 200);
       } catch (error) {
-        error(res, data.error, 500);
+        next(error)
       }
     }
   );
@@ -123,7 +121,7 @@ module.exports = app => {
       try {
         let id = req.params.id || null;
 
-        await deleteUser(id, req.file, next);
+        await deleteUser(id, req.user, next);
 
         success(res, "", 200);
       } catch (error) {

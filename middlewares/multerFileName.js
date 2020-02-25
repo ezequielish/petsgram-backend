@@ -2,7 +2,9 @@ const multer = require("multer");
 const fs = require("fs");
 const { publicRoute } = require("../config");
 const { getID, getUserEmail } = require("../routes/api/users/model");
-const { getID: getIDCategorie } = require("../routes/api/categories/model");
+const { getID: getIdCategory } = require("../routes/api/categories/model");
+
+const hasName = require("../utils/hasSpaceName");
 
 function configFile(fileRoute) {
   const storage = multer.diskStorage({
@@ -13,10 +15,20 @@ function configFile(fileRoute) {
         };
         return cb(err, null);
       }
+      const emailToValidate = req.body.email;
+      const emailRegexp = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+      emailValidate = emailRegexp.test(emailToValidate);
+      if (!emailValidate) {
+        let err = {
+          message: "email inválido"
+        };
+        return cb(err, null);
+      }
       const existeUser = await getUserEmail(req.body.email);
       if (existeUser.length) {
         let err = {
-          message: "email ya existes"
+          message: "email ya existe"
         };
         return cb(err, null);
       }
@@ -32,7 +44,7 @@ function configFile(fileRoute) {
       );
     },
     filename: (req, file, cb) => {
-      cb(null, file.originalname); // +
+      cb(null, hasName(file.originalname)); // +
     }
   });
 
@@ -42,6 +54,15 @@ function configFileUpdate(fileRoute) {
   const storage = multer.diskStorage({
     destination: async (req, file, cb) => {
       let id = req.params.id || null;
+      const idSub = req.user.sub;
+
+      
+      if (idSub != id) {
+        let err = {
+          message: "no autorizado"
+        };
+        return cb(err);
+      }
       const user = await getID(id); // verifico si el id pertenece a un usuario.
       if (!user.length) {
         return cb(null, "");
@@ -57,14 +78,14 @@ function configFileUpdate(fileRoute) {
       );
     },
     filename: (req, file, cb) => {
-      cb(null, file.originalname); // +
+      cb(null, hasName(file.originalname)); // +
     }
   });
 
   return (upload = multer({ storage }));
 }
 
-function configFileCategorie(fileRoute) {
+function configFileCategory(fileRoute) {
   const storage = multer.diskStorage({
     destination: async (req, file, cb) => {
       if (!req.body.name) {
@@ -75,42 +96,45 @@ function configFileCategorie(fileRoute) {
       }
 
       fs.mkdir(
-        `public/${publicRoute}/${fileRoute}/${req.body.name}`, //creamos el directorio
+        `public/${publicRoute}/${fileRoute}/${hasName(req.body.name)}`, //creamos el directorio
         { recursive: true },
         err => {
           if (err) throw err;
 
-          cb(null, `public/${publicRoute}/${fileRoute}/${req.body.name}`); //seleccionamos el directorio creado para colocar la imagen
+          cb(
+            null,
+            `public/${publicRoute}/${fileRoute}/${hasName(req.body.name)}`
+          ); //seleccionamos el directorio creado para colocar la imagen
         }
       );
     },
     filename: (req, file, cb) => {
-      cb(null, file.originalname); // +
+      cb(null, hasName(file.originalname)); // +
     }
   });
 
   return (upload = multer({ storage }));
 }
-function configFileUpdateCategorie(fileRoute) {
+function configFileUpdateCategory(fileRoute) {
   const storage = multer.diskStorage({
     destination: async (req, file, cb) => {
       let id = req.params.id || null;
-      const categorie = await getIDCategorie(id); // verifico si el id pertenece a un usuario.
-      if (!categorie.length) {
+      const category = await getIdCategory(id); // verifico si el id pertenece a un usuario.
+      if (!category.length) {
         return cb(null, "");
       }
-      const name = categorie[0].name;
+      const name = category[0].name;
       fs.mkdir(
-        `public/${publicRoute}/${fileRoute}/${name}`, // creamos un directorio con el email del usuario
+        `public/${publicRoute}/${fileRoute}/${hasName(name)}`, // creamos un directorio con el email del usuario
         { recursive: true },
         err => {
           if (err) console.log(err);
-          cb(null, `public/${publicRoute}/${fileRoute}/${name}`);
+          cb(null, `public/${publicRoute}/${fileRoute}/${hasName(name)}`);
         }
       );
     },
     filename: (req, file, cb) => {
-      cb(null, file.originalname); // +
+      cb(null, hasName(file.originalname)); // +
     }
   });
 
@@ -120,14 +144,14 @@ function configFileUpdateCategorie(fileRoute) {
 function configFilePhoto(fileRoute) {
   const storage = multer.diskStorage({
     destination: async (req, file, cb) => {
-      if (!req.body.idUser || !req.body.idCategorie) {
+      if (!req.user.sub || !req.body.idCategory) {
         let err = {
-          message: "usuario invalido"
+          message: "datos invalidos"
         };
         return cb(err, null);
       }
-      const existeUser = await getID(req.body.idUser);
-      const categorieExiste = await getIDCategorie(req.body.idCategorie);
+      const existeUser = await getID(req.user.sub);
+      const categorieExiste = await getIdCategory(req.body.idCategory);
 
       if (!categorieExiste.length) {
         let err = {
@@ -142,6 +166,8 @@ function configFilePhoto(fileRoute) {
         return cb(err, null);
       }
 
+   
+      
       const email = existeUser[0].email;
       fs.mkdir(
         `public/${publicRoute}/${fileRoute}/${email}/photos`,
@@ -154,7 +180,7 @@ function configFilePhoto(fileRoute) {
       );
     },
     filename: (req, file, cb) => {
-      cb(null, file.originalname); // +
+      cb(null, hasName(file.originalname)); // +
     }
   });
 
@@ -164,7 +190,7 @@ function configFilePhoto(fileRoute) {
 module.exports = {
   configFile,
   configFileUpdate,
-  configFileCategorie,
-  configFileUpdateCategorie,
+  configFileCategory,
+  configFileUpdateCategory,
   configFilePhoto
 };

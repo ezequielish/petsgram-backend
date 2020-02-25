@@ -6,39 +6,34 @@ const {
   getAll,
   update,
   updateFile,
-  deleteCategorie
+  deleteCategory
 } = require("./controller");
 const {
-  configFileCategorie,
-  configFileUpdateCategorie
+  configFileCategory,
+  configFileUpdateCategory
 } = require("../../../middlewares/multerFileName");
-const upload = configFileCategorie("categories");
-const uploadUpdate = configFileUpdateCategorie("categories");
+const upload = configFileCategory("categories");
+const uploadUpdate = configFileUpdateCategory("categories");
 const passport = require("passport");
 const scopeValidatior = require("../../../middlewares/handleScopeValidation");
 require("../../../utils/strategies/auth/jwt");
 
 module.exports = app => {
-  app.get(
-    `${API_PATH}/categories`,
-    passport.authenticate("jwt", { session: false }),
-    scopeValidatior(["read:categories"]),
-    async (req, res, next) => {
-      try {
-        const data = await getAll(next);
-        success(res, data, 200);
-      } catch (error) {
-        next();
-      }
+  app.get(`${API_PATH}/categories`, async (req, res, next) => {
+    try {
+      const data = await getAll(next);
+      success(res, data, 200);
+    } catch (error) {
+      next();
     }
-  );
+  });
 
-  //add categorie
+  //add category
   app.post(
-    `${API_PATH}/categorie`,
-    upload.single("file"),
+    `${API_PATH}/category`,
     passport.authenticate("jwt", { session: false }),
-    scopeValidatior(["create:categorie"]),
+    scopeValidatior(["create:category"]),
+    upload.single("file"),
     async (req, res, next) => {
       try {
         const data = await add(req.body, req.file, next);
@@ -49,11 +44,11 @@ module.exports = app => {
     }
   );
 
-  //update categorie
+  //update category
   app.patch(
-    `${API_PATH}/categorie`,
+    `${API_PATH}/category`,
     passport.authenticate("jwt", { session: false }),
-    scopeValidatior(["update:categories"]),
+    scopeValidatior(["update:category"]),
     async (req, res, next) => {
       try {
         const data = await update(req.body, next);
@@ -67,10 +62,10 @@ module.exports = app => {
 
   //update file
   app.patch(
-    `${API_PATH}/update/image/categorie/:id`,
-    uploadUpdate.single("file"),
+    `${API_PATH}/update/image/category/:id`,
     passport.authenticate("jwt", { session: false }),
-    scopeValidatior(["update:categories"]),
+    scopeValidatior(["update:category"]),
+    uploadUpdate.single("file"),
     async (req, res, next) => {
       try {
         let id = req.params.id || null;
@@ -84,18 +79,20 @@ module.exports = app => {
     }
   );
 
-  app.delete(`${API_PATH}/categorie/:id`,
-  passport.authenticate("jwt", { session: false }),
-  scopeValidatior(["delete:categories"]),
-  async (req, res, next) => {
-    try {
-      let id = req.params.id || null;
+  app.delete(
+    `${API_PATH}/category/:id`,
+    passport.authenticate("jwt", { session: false }),
+    scopeValidatior(["delete:category"]),
+    async (req, res, next) => {
+      try {
+        let id = req.params.id || null;
 
-      await deleteCategorie(id, next);
+        await deleteCategory(id, next);
 
-      success(res, "", 200);
-    } catch (error) {
-      next(error);
+        success(res, "", 200);
+      } catch (error) {
+        next(error);
+      }
     }
-  });
+  );
 };

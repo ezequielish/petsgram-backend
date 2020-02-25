@@ -11,8 +11,9 @@ const error = require("../../../utils/error");
 const PATH_IMG_CATEGORIES = "./public/app/categories";
 const { host, port, publicRoute } = require("../../../config");
 const fs = require("fs");
+const hasName = require("../../../utils/hasSpaceName")
 
-async function addCategorie(data, file, next) {
+async function addCategory(data, file, next) {
   try {
     if (!data.name) {
       throw error("Campos inválidos");
@@ -20,14 +21,13 @@ async function addCategorie(data, file, next) {
 
     let fileUrl = "";
     if (file) {
-      fileUrl = `${host}:${port}/${publicRoute}/${dirName}/${data.name}/${file.originalname}`;
+      fileUrl = `${host}:${port}/${publicRoute}/${dirName}/${hasName(data.name)}/${hasName(file.originalname)}`;
     }
 
     const categorie = {
       name: data.name,
       cover: fileUrl,
       emoji: data.emoji || "",
-      path: data.path || "",
       createAt: new Date(),
       updateAt: new Date()
     };
@@ -50,7 +50,7 @@ async function getCategories(next) {
   }
 }
 
-async function updatCategorie(data, next) {
+async function updatCategory(data, next) {
   const id = data.id;
   delete data.id;
 
@@ -66,14 +66,14 @@ async function updatCategorie(data, next) {
   }
 }
 
-async function updateCategorieFile(id, file, next) {
+async function updateCategoryFile(id, file, next) {
   try {
-    const categorie = await getID(id);
-    if (!categorie.length) {
+    const category = await getID(id);
+    if (!category.length) {
       throw error("categoria no existe");
     }
-    const fileExist = categorie[0].cover;
-    const name = categorie[0].name;
+    const fileExist = category[0].cover;
+    const name = category[0].name;
 
     if (fileExist) {
       // si existe eliminamos la foto actual
@@ -85,7 +85,7 @@ async function updateCategorieFile(id, file, next) {
     }
     let fileUrl = "";
     if (file) {
-      fileUrl = `${host}:${port}/${publicRoute}/${dirName}/${name}/${file.originalname}`;
+      fileUrl = `${host}:${port}/${publicRoute}/${dirName}/${hasName(name)}/${hasName(file.originalname)}`;
     }
 
     const result = await updateFile(fileUrl, id);
@@ -97,15 +97,15 @@ async function updateCategorieFile(id, file, next) {
     next(error);
   }
 }
-async function deleteCategorie(id, next) {
+async function deleteCategory(id, next) {
   try {
-    const categorie = await getID(id);
-    if (!categorie.length) {
+    const category = await getID(id);
+    if (!category.length) {
       throw error("categoria no existe");
     }
 
-    const fileExist = categorie[0].cover;
-    const name = categorie[0].name;
+    const fileExist = category[0].cover;
+    const name = category[0].name;
 
     if (fileExist) {
       const img = fileExist.split("/")[6];
@@ -125,9 +125,9 @@ async function deleteCategorie(id, next) {
   }
 }
 module.exports = {
-  add: addCategorie,
+  add: addCategory,
   getAll: getCategories,
-  update: updatCategorie,
-  updateFile: updateCategorieFile,
-  deleteCategorie
+  update: updatCategory,
+  updateFile: updateCategoryFile,
+  deleteCategory
 };

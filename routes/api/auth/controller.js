@@ -26,7 +26,7 @@ async function sigin(user, next) {
     };
 
     const newToken = jwt.sign(payload, authJwtSecret, {
-      expiresIn: "15m"
+      expiresIn: "59m"
     });
 
     const data = {
