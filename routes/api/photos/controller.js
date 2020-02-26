@@ -5,35 +5,31 @@ const {
   getPhotoCategory,
   getPhotoId,
   update,
-  //   getID,
-  updateFile,
-  deleteOne
+
 } = require("./model");
 const dirName = "photos";
 const dirNameUser = "users";
 const { ObjectId } = require("mongodb");
 const error = require("../../../utils/error");
-const PATH_IMG = "./public/app/categories";
 const { get: getUser } = require("../users/controller");
 const { getID } = require("../categories/model");
 const { host, port, publicRoute } = require("../../../config");
-const fs = require("fs");
 const hasName = require("../../../utils/hasSpaceName")
 
 async function addPhoto(data, user, file, next) {
   
   if (!data.idCategory || !user || !file) {
-    throw error("Campos inválidos");
+    throw error("Campos inválidos", 400);
   }
 
   try {
     const userSelect = await getUser(user.sub);
     const category = await getID(data.idCategory);
     if (!userSelect) {
-      throw error("usuario no existe");
+      throw error("usuario no existe", 400);
     }
     if (!category) {
-      throw error("categoria no existe");
+      throw error("categoria no existe", 400);
     }
     let fileUrl = "";
     if (file) {
@@ -61,6 +57,8 @@ async function allPhotos(next) {
     const data = await getAll();
     return data;
   } catch (error) {
+    console.log(error);
+    
     console.error("Error [controller:photos]");
     next(error);
   }
@@ -93,6 +91,16 @@ async function photoId(query, next) {
 
   try {
     const data = await getPhotoId(query);
+    return data;
+  } catch (error) {
+    console.error("Error [controller:photos]");
+    next(error);
+  }
+}
+async function updateLike(like, id, next) {
+
+  try {
+    const data = await update(like, id);
     return data;
   } catch (error) {
     console.error("Error [controller:photos]");
@@ -133,7 +141,8 @@ module.exports = {
   getXCategory: PhotosCategory,
   getAll: allPhotos,
   getXUser: photosUser,
-  getXId: photoId
+  getXId: photoId,
+  updateLike
   // getAll: getCategories,
   // update: updatCategorie,
   // updateFile: updateCategorieFile,
